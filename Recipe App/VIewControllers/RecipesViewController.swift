@@ -6,61 +6,54 @@
 //
 
 import UIKit
+import SnapKit
 
 class RecipesViewController: UIViewController {
-    
-    let userDefaults: UserDefaults = UserDefaults.standard
-    
+        
     private var recipes: [Recipe] = [] {
         didSet {
             DispatchQueue.main.async {
                 self.tableView.reloadData()
-                self.tableView.refreshControl?.endRefreshing()
+                self.refreshControl.endRefreshing()
             }
         }
     }
     
-    private let tableView: UITableView = {
+    private lazy var refreshControl: UIRefreshControl = {
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action: #selector(refreshRecipes), for: .valueChanged)
+        refreshControl.beginRefreshing()
+        return refreshControl
+    }()
+    
+    private lazy var tableView: UITableView = {
         let tableView = UITableView()
         tableView.backgroundColor = .systemBackground
         tableView.register(RecipeCell.self, forCellReuseIdentifier: RecipeCell.identifier)
         tableView.separatorStyle = .none
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.addSubview(refreshControl)
         return tableView
     }()
     
-    private let refreshControl = UIRefreshControl()
-
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         setupUI()
-        
-        tableView.dataSource = self
-        tableView.delegate = self
-        
         setupData()
     }
     
-    
     private func setupUI() {
         
-        refreshControl.addTarget(self, action: #selector(refreshRecipes), for: .valueChanged)
-        
-        tableView.backgroundColor = .systemBackground
+        view.backgroundColor = .systemBackground
         title = "Recipes"
-        
-        tableView.refreshControl = refreshControl
-        tableView.refreshControl?.beginRefreshing()
-        
         view.addSubview(tableView)
-        tableView.translatesAutoresizingMaskIntoConstraints = false
         
-        NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.topAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        ])
+        navigationController?.navigationBar.prefersLargeTitles = true
+
+        tableView.snp.makeConstraints { make in
+            make.edges.equalTo(view.safeAreaInsets)
+        }
         
     }
     
@@ -69,9 +62,7 @@ class RecipesViewController: UIViewController {
             guard let self else {
                 return
             }
-            DispatchQueue.main.async {
-                self.recipes = NetworkClient.shared.recipes.recipes
-            }
+            self.recipes = NetworkClient.shared.recipes.recipes
         }
     }
     
@@ -95,7 +86,7 @@ extension RecipesViewController: UITableViewDelegate, UITableViewDataSource {
         let recipe = recipes[indexPath.item]
         
         cell.configure(
-            url: recipe.image,
+            urlString: recipe.image,
             title: recipe.title,
             readyInMinutes: recipe.readyInMinutes,
             servings: recipe.servings
@@ -112,7 +103,7 @@ extension RecipesViewController: UITableViewDelegate, UITableViewDataSource {
         var recipe = recipes[indexPath.item]
         
         do {
-            recipe = try userDefaults.getObject(forKey: "\(recipe.id)", castTo: Recipe.self)
+            recipe = try AppDelegate.userDefaults.getObject(forKey: "\(recipe.id)", castTo: Recipe.self)
             recipe.isFavorite = true
         } catch {
             print(error.localizedDescription)
@@ -123,19 +114,6 @@ extension RecipesViewController: UITableViewDelegate, UITableViewDataSource {
         navigationController?.pushViewController(detailedViewController, animated: true)
         
     }
-    
-//    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-//
-//            if editingStyle == .delete {
-//
-//                // remove the item from the data model
-//                recipes.remove(at: indexPath.row)
-//
-//                // delete the table view row
-//                tableView.deleteRows(at: [indexPath], with: .fade)
-//
-//            }
-//        }
     
 }
             

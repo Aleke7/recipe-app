@@ -7,11 +7,6 @@
 
 import UIKit
 
-enum Position {
-    case start
-    case end
-}
-
 extension String {
     
     var htmlToAttributedString: NSAttributedString? {

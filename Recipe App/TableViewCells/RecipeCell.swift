@@ -12,17 +12,11 @@ class RecipeCell: UITableViewCell {
 
     static let identifier = "RecipeCell"
     
-    private var recipe: Recipe?
-    
     private lazy var cellImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleToFill
         imageView.image = UIImage(systemName: "questionmark")
         imageView.tintColor = .label
-        imageView.sizeToFit()
-        if let urlString = recipe!.image {
-            imageView.load(urlString: urlString)
-        }
         return imageView
     }()
     
@@ -32,7 +26,6 @@ class RecipeCell: UITableViewCell {
         label.textAlignment = .center
         label.font = .systemFont(ofSize: 20, weight: .medium)
         label.numberOfLines = 0
-        label.text = recipe!.title
         return label
     }()
     
@@ -41,11 +34,6 @@ class RecipeCell: UITableViewCell {
         label.textAlignment = .left
         label.textColor = .systemBlue
         label.font = .systemFont(ofSize: 18, weight: .light)
-        label.imagePlusText(
-            amount: "\(recipe!.readyInMinutes)",
-            image: UIImage(systemName: "clock.fill"),
-            for: .minutes
-        )
         return label
     }()
     
@@ -54,11 +42,6 @@ class RecipeCell: UITableViewCell {
         label.textAlignment = .right
         label.textColor = .systemBlue
         label.font = .systemFont(ofSize: 18, weight: .light)
-        label.imagePlusText(
-            amount: "\(recipe!.servings)",
-            image: UIImage(systemName: "person.3.fill"),
-            for: .servings
-        )
         return label
     }()
     
@@ -111,8 +94,18 @@ class RecipeCell: UITableViewCell {
         
     }
     
-    func configure(recipe: Recipe) {
-        self.recipe = recipe
+    func configure(
+        urlString: String?,
+        title: String,
+        readyInMinutes: Int,
+        servings: Int
+    ) {
+        if let urlString = urlString {
+            cellImageView.load(urlString: urlString)
+        }
+        cellTitleLabel.text = title
+        cellReadyInMunutesLabel.imagePlusText(amount: "\(readyInMinutes)", image: UIImage(systemName: "clock.fill"), for: .minutes)
+        cellServingsLabel.imagePlusText(amount: "\(servings)", image: UIImage(systemName: "person.3.fill"), for: .servings)
     }
     
 }

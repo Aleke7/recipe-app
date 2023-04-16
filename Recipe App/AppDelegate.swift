@@ -6,11 +6,32 @@
 //
 
 import UIKit
+import CoreData
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
+    
+    static let userDefaults: UserDefaults = UserDefaults.standard
 
+    static let sharedAppDelegate: AppDelegate = {
+        guard let delegate = UIApplication.shared.delegate as? AppDelegate else {
+            fatalError("Unexpected app delegate type, did it change? \(String(describing: UIApplication.shared.delegate))")
+        }
+        return delegate
+    }()
+    
+    
+    lazy var persistentContainer: NSPersistentContainer = {
 
+        let container = NSPersistentContainer(name: "Recipes")
+        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
+            if let error = error {
+
+                fatalError("Unresolved error, \((error as NSError).userInfo)")
+            }
+        })
+        return container
+    }()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
